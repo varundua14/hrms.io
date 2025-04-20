@@ -56,22 +56,27 @@ const CandidateModal = ({
     try {
       const formData = new FormData();
       
+      // Add all form fields
       Object.entries(data).forEach(([key, value]) => {
         if (key === 'skills' && Array.isArray(value)) {
           formData.append(key, value.join(','));
         } else if (key !== 'resume' && value !== undefined && value !== null) {
-          formData.append(key, value as string);
+          formData.append(key, String(value));
         }
       });
 
+      // Add resume file if exists
       if (resumeFile) {
         formData.append('resume', resumeFile);
       }
       
+      console.log('Submitting form data:', Object.fromEntries(formData.entries()));
       await onSave(formData);
       setResumeFile(null);
+      toast.success(mode === 'create' ? 'Candidate created successfully' : 'Candidate updated successfully');
     } catch (error) {
       console.error('Error saving candidate:', error);
+      toast.error('Failed to save candidate');
     } finally {
       setIsLoading(false);
     }
