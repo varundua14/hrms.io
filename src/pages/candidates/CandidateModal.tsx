@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { X, Download, UserCheck, Upload } from 'lucide-react';
 import { Candidate } from '../../types';
 import { toast } from 'react-hot-toast';
+import { api, API_URL } from '../../services/api';
 
 interface CandidateModalProps {
   isOpen: boolean;
@@ -102,7 +103,7 @@ const CandidateModal = ({
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/candidates/resume/${candidate.id}`, {
+      const response = await fetch(`${API_URL}/candidates/resume/${candidate.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
