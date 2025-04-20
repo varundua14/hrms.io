@@ -1,7 +1,7 @@
 import { Candidate, Employee, Attendance, Leave } from '../types';
 
 // API Configuration
-export const API_URL = 'http://localhost:5000/api';
+export const API_URL = 'https://hrms-io.onrender.com';
 
 // Mock data
 const mockCandidates: Candidate[] = [
