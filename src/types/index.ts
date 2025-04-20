@@ -31,8 +31,8 @@ export interface Candidate {
   position: string;
   department: string;
   expectedSalary: number;
-  applyDate: Date;
-  resume: {
+  applyDate: string;
+  resume?: {
     filename: string;
     path: string;
     originalName: string;
