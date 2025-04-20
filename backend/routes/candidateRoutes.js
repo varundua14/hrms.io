@@ -149,13 +149,14 @@ router.post('/:id/move-to-employee', async (req, res) => {
       salary: req.body.salary,
       role: 'employee', // Default role
       status: 'active', // Default status for new employees
-      resume: candidate.resume
+      resume: candidate.resume,
+      joiningDate: req.body.joiningDate || new Date()
     });
 
     // Save the new employee
     const newEmployee = await employee.save();
 
-    // Delete the candidate (optional - you might want to keep them and just mark as moved)
+    // Delete the candidate
     await Candidate.findByIdAndDelete(req.params.id);
 
     res.status(201).json(newEmployee);
