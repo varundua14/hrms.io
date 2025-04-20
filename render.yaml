@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: hrms-frontend
+    env: node
+    buildCommand: yarn install && yarn build
+    startCommand: yarn preview
+    envVars:
+      - key: VITE_API_URL
+        value: https://hrms-backend.onrender.com/api 
