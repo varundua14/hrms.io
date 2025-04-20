@@ -365,49 +365,61 @@ export const api = {
   // Candidates
   getCandidates: async (): Promise<Candidate[]> => {
     try {
-      // Try to fetch from database first
-      const response = await fetch(`${API_URL}/candidates`);
-      let databaseCandidates: Candidate[] = [];
+      console.log('Fetching candidates from both sources...');
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Raw database candidates:', data);
+      // Start with mock data
+      let allCandidates = [...mockCandidates];
+      console.log('Added mock candidates:', allCandidates.length);
+      
+      // Try to fetch from database
+      try {
+        const response = await fetch(`${API_URL}/candidates`);
         
-        // Transform database data to match frontend format
-        databaseCandidates = data.map((candidate: any) => ({
-          id: candidate._id || candidate.id,
-          firstName: candidate.firstName,
-          lastName: candidate.lastName,
-          email: candidate.email,
-          phone: candidate.phone,
-          status: candidate.status,
-          position: candidate.position,
-          applyDate: new Date(candidate.applyDate).toISOString().split('T')[0],
-          resume: candidate.resume,
-          skills: candidate.skills || [],
-          experience: candidate.experience || 0,
-          notes: candidate.notes || ''
-        }));
-        console.log('Transformed database candidates:', databaseCandidates);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Raw database candidates:', data);
+          
+          if (Array.isArray(data)) {
+            // Transform database data to match frontend format
+            const databaseCandidates = data.map((candidate: any) => ({
+              id: candidate._id || candidate.id,
+              firstName: candidate.firstName,
+              lastName: candidate.lastName,
+              email: candidate.email,
+              phone: candidate.phone,
+              status: candidate.status,
+              position: candidate.position,
+              department: candidate.department || 'Engineering',
+              expectedSalary: candidate.expectedSalary || 0,
+              applyDate: new Date(candidate.applyDate).toISOString().split('T')[0],
+              resume: candidate.resume,
+              skills: candidate.skills || [],
+              experience: candidate.experience || 0,
+              notes: candidate.notes || ''
+            }));
+            
+            console.log('Transformed database candidates:', databaseCandidates.length);
+            
+            // Add database candidates to the list
+            allCandidates = [...allCandidates, ...databaseCandidates];
+            console.log('Total candidates after adding database data:', allCandidates.length);
+          }
+        }
+      } catch (dbError) {
+        console.error('Error fetching from database:', dbError);
+        console.log('Continuing with mock data only');
       }
-
-      // Get mock data
-      const mockData = [...mockCandidates];
-      console.log('Mock candidates:', mockData);
-
-      // Combine both sets of data
-      const combinedCandidates = [...databaseCandidates, ...mockData];
-      console.log('Combined candidates:', combinedCandidates);
       
       // Sort by apply date (newest first)
-      combinedCandidates.sort((a, b) => 
+      allCandidates.sort((a: Candidate, b: Candidate) => 
         new Date(b.applyDate).getTime() - new Date(a.applyDate).getTime()
       );
-
-      return combinedCandidates;
+      
+      console.log('Final combined candidates list:', allCandidates.length);
+      return allCandidates;
     } catch (error) {
-      console.log('Error fetching database data, falling back to mock data only:', error);
-    return [...mockCandidates];
+      console.error('Error in getCandidates:', error);
+      return [...mockCandidates]; // Fallback to mock data only
     }
   },
 
@@ -607,13 +619,13 @@ export const api = {
           body: JSON.stringify({
             department: department,
             salary: salary,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      email: candidate.email,
-      phone: candidate.phone,
-      position: candidate.position,
+            firstName: candidate.firstName,
+            lastName: candidate.lastName,
+            email: candidate.email,
+            phone: candidate.phone,
+            position: candidate.position,
             joiningDate: new Date().toISOString().split('T')[0],
-      status: 'active',
+            status: 'active',
             role: 'employee'
           }),
         });
@@ -648,7 +660,7 @@ export const api = {
         };
 
         // Add to mock employees
-    mockEmployees.push(newEmployee);
+        mockEmployees.push(newEmployee);
 
         // Remove from mock candidates
         const candidateIndex = mockCandidates.findIndex(c => c.id === id);
