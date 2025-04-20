@@ -25,8 +25,18 @@ const CandidatesPage = () => {
   const fetchCandidates = async () => {
     setLoading(true);
     try {
+      console.log('Fetching candidates from all sources...');
       const data = await api.getCandidates();
-      setCandidates(data || []);
+      console.log('Received candidates data:', data);
+      
+      if (Array.isArray(data)) {
+        setCandidates(data);
+        console.log('Updated candidates state with combined data:', data.length);
+      } else {
+        console.error('Received non-array data:', data);
+        setCandidates([]);
+        showMessage('error', 'Invalid data format received');
+      }
     } catch (error) {
       console.error('Failed to fetch candidates:', error);
       showMessage('error', 'Failed to fetch candidates');
