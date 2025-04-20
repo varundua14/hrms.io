@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Download, UserCheck, Upload } from 'lucide-react';
 import { Candidate } from '../../types';
+import { toast } from 'react-hot-toast';
 
 interface CandidateModalProps {
   isOpen: boolean;
@@ -95,45 +96,34 @@ const CandidateModal = ({
   };
 
   const handleDownloadResume = async () => {
-    if (!candidate?.id) return;
-    
+    if (!candidate?.id) {
+      toast.error('No candidate selected');
+      return;
+    }
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/candidates/resume/${candidate.id}`, {
-        method: 'GET',
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/candidates/resume/${candidate.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-
+      
       if (!response.ok) {
         throw new Error('Failed to download resume');
       }
 
-      const contentDisposition = response.headers.get('content-disposition');
-      let filename = `${candidate.firstName}_${candidate.lastName}_resume.pdf`;
-      if (contentDisposition) {
-        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/g.exec(contentDisposition);
-        if (matches?.[1]) {
-          filename = matches[1].replace(/['"]/g, '');
-        }
-      }
-
       const blob = await response.blob();
-      const link = document.createElement('a');
-      link.style.display = 'none';
-      link.href = window.URL.createObjectURL(blob);
-      link.download = filename;
-
-      document.body.appendChild(link);
-      link.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(link.href);
-      }, 100);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resume-${candidate.firstName}-${candidate.lastName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading resume:', error);
-      alert('Failed to download resume. Please try again.');
+      toast.error('Failed to download resume');
     }
   };
 
