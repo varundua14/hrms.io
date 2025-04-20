@@ -437,41 +437,25 @@ export const api = {
 
   createCandidate: async (formData: FormData): Promise<Candidate> => {
     try {
+      console.log('Creating candidate with form data:', Object.fromEntries(formData.entries()));
+      
       const response = await fetch(`${API_URL}/candidates`, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create candidate');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Server error:', errorData);
+        throw new Error(errorData.message || 'Failed to create candidate');
       }
 
       const savedCandidate = await response.json();
+      console.log('Saved candidate:', savedCandidate);
       return transformCandidate(savedCandidate);
     } catch (error) {
-      console.log('Using mock data - creating candidate');
-      const formDataObj = Object.fromEntries(formData.entries());
-      const newCandidate: Candidate = {
-        id: (mockCandidates.length + 1).toString(),
-        firstName: formDataObj.firstName as string,
-        lastName: formDataObj.lastName as string,
-        email: formDataObj.email as string,
-        phone: formDataObj.phone as string,
-        status: 'new',
-        position: formDataObj.position as string,
-        department: formDataObj.department as string || 'Engineering',
-        expectedSalary: Number(formDataObj.expectedSalary) || 0,
-        applyDate: new Date().toISOString().split('T')[0],
-        skills: (formDataObj.skills as string).split(','),
-        experience: Number(formDataObj.experience),
-        resume: formDataObj.resume ? {
-          filename: (formDataObj.resume as File).name,
-          path: URL.createObjectURL(formDataObj.resume as Blob),
-          originalName: (formDataObj.resume as File).name
-        } : undefined
-    };
-    mockCandidates.push(newCandidate);
-    return newCandidate;
+      console.error('Error creating candidate:', error);
+      throw error;
     }
   },
 
